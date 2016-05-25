@@ -1,0 +1,49 @@
+CREATE TABLE users (
+	id SERIAL PRIMARY KEY,
+	name text NOT NULL,
+	email text NOT NULL,
+	password text NOT NULL,
+	ip text NOT NULL,
+	user_agent text NOT NULL,
+	created_at timestamptz NOT NULL DEFAULT NOW(),
+	locked_at timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE sessions (
+	id uuid PRIMARY KEY,
+	user_id int  NOT NULL REFERENCES users(id),
+	ipaddress text NOT NULL,
+	loggedout_at timestamptz NULL,
+	expired_at timestamptz NULL,
+	created_at timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE faucet_claims (
+	id SERIAL PRIMARY KEY,
+	user_id int  NOT NULL REFERENCES users(id),
+	amount int NOT NULL,
+	claimed_at timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE apps (
+	id SERIAL PRIMARY KEY,
+	name text NOT NULL,
+	reward int NOT NULL,
+	created_at timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE balance (
+	id SERIAL PRIMARY KEY,
+	app_id int  NOT NULL REFERENCES apps(id),
+	user_id int  NOT NULL REFERENCES users(id),
+	balance int NOT NULL
+);
+
+CREATE TYPE user_payment_option AS ENUM ('BTC', 'COINBASE');
+
+CREATE TABLE user_settings (
+	id SERIAL PRIMARY KEY,
+	user_id int  NOT NULL REFERENCES users(id),
+	payment_option user_payment_option NOT NULL DEFAULT 'BTC'::user_payment_option,
+	payment_detail text NOT NULL
+);
