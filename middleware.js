@@ -5,6 +5,13 @@ const _ = require("lodash");
 const pre = require("./presenter");
 
 exports.ensureAuth = function*(next) {
+	const response = {
+		"success": false,
+		"error": {
+			"message": "You are not authorized."
+		}
+	}
+
 	const sessionId = this.session.sessionId || false;
 	if(sessionId) {
 		const session = yield db.getSessionById(sessionId);
@@ -13,20 +20,29 @@ exports.ensureAuth = function*(next) {
 		    if (user) {
 		      	this.currUser = pre.presentUser(user);
 		      	this.currSessionId = sessionId;
+		      	yield* next;
+		      	return;
 		    }
-
-			const response = {
-				"success": true
-			}
-			this.type = "json";
-			this.body = response;
-			return;
-		} else {
-			// if session is expired or not found
-			this.session = null;
 		}
 	}
-	yield* next;
+
+	let urlList = [
+ 		"/api/login",
+ 		"/api/login/",
+ 		"/api/register",
+ 		"/api/register/"
+ 	];
+ 
+ 	// check if url target is on the urlList
+ 	if(_.includes(urlList, this.path)) {
+ 		yield* next;
+ 		return;
+ 	}
+
+	this.session = null
+	this.type = "json";
+	this.body = response;
+	return;
 };
 
 // Assoc ctx.currUser if the session_id cookie (a UUID v4)

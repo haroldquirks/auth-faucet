@@ -21,6 +21,7 @@ CREATE TABLE sessions (
 CREATE TABLE faucet_claims (
 	id SERIAL PRIMARY KEY,
 	user_id int  NOT NULL REFERENCES users(id),
+	app_id int  NOT NULL REFERENCES apps(id),
 	amount int NOT NULL,
 	claimed_at timestamptz NOT NULL DEFAULT NOW()
 );
@@ -29,6 +30,7 @@ CREATE TABLE apps (
 	id SERIAL PRIMARY KEY,
 	name text NOT NULL,
 	reward int NOT NULL,
+	time_limit int NOT NULL,
 	created_at timestamptz NOT NULL DEFAULT NOW()
 );
 
@@ -37,6 +39,14 @@ CREATE TABLE balance (
 	app_id int  NOT NULL REFERENCES apps(id),
 	user_id int  NOT NULL REFERENCES users(id),
 	balance int NOT NULL
+);
+
+CREATE TABLE token (
+	id uuid PRIMARY KEY,
+	app_id int  NOT NULL REFERENCES apps(id),
+	user_id int  NOT NULL REFERENCES users(id),
+	expired_at timestamptz NULL,
+	created_at timestamptz NOT NULL DEFAULT NOW()
 );
 
 CREATE TYPE user_payment_option AS ENUM ('BTC', 'COINBASE');
